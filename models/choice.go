@@ -32,15 +32,15 @@ const (
 func (c ChoiceType) String() string {
 	switch c {
 	case Rock:
-		return "Rock"
+		return "rock"
 	case Paper:
-		return "Paper"
+		return "paper"
 	case Scissors:
-		return "Scissors"
+		return "scissors"
 	case Lizard:
-		return "Lizard"
+		return "lizard"
 	case Spock:
-		return "Spock"
+		return "spock"
 	}
 	return ""
 }
