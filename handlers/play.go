@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,18 +22,28 @@ func HandlePlay(w http.ResponseWriter, r *http.Request) {
 		match := models.Match{}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("error reading /play input: %s", err)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
 
 		err = json.Unmarshal(body, &match)
 		if err != nil {
 			log.Printf("error unmarshalling play input: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
+		}
+
+		if match.Player < models.Rock || match.Player > models.Spock {
+			log.Printf("player choice out of range: %s", match.Player)
+			WriteError(w, http.StatusBadRequest, "player choice must be in range 1-5")
+			return
 		}
 
 		computerChoice, err := GetRandomChoice()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
 		match.Computer = computerChoice.ID
 
@@ -41,10 +52,11 @@ func HandlePlay(w http.ResponseWriter, r *http.Request) {
 		m, err := json.Marshal(match)
 		if err != nil {
 			log.Printf("error marshalling play out: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
 		}
 		io.WriteString(w, string(m))
 	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		e := fmt.Sprintf("given method not allowed: %s", r.Method)
+		WriteError(w, http.StatusMethodNotAllowed, e)
 	}
 }

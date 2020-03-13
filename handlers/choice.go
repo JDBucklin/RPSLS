@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,11 +21,13 @@ func HandleChoices(w http.ResponseWriter, r *http.Request) {
 		c, err := json.Marshal(choices)
 		if err != nil {
 			log.Printf("error marshalling choices: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
 		io.WriteString(w, string(c))
 	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		e := fmt.Sprintf("given method not allowed: %s", r.Method)
+		WriteError(w, http.StatusMethodNotAllowed, e)
 	}
 }
 
@@ -35,16 +38,19 @@ func HandleChoice(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		choice, err := GetRandomChoice()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
 		c, err := json.Marshal(choice)
 		if err != nil {
 			log.Printf("error marshalling choice: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
 		io.WriteString(w, string(c))
 	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		e := fmt.Sprintf("given method not allowed: %s", r.Method)
+		WriteError(w, http.StatusMethodNotAllowed, e)
 	}
 }
 
@@ -59,6 +65,7 @@ func GetRandomChoice() (models.Choice, error) {
 	if err != nil {
 		log.Printf("error retrieving random number from https://codechallenge.boohma.com/random: %s", err)
 	}
+
 	choice := models.Choice{}
 	if resp.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -78,7 +85,7 @@ func GetRandomChoice() (models.Choice, error) {
 		choice.ID = choiceType
 		choice.Name = choiceType.String()
 	} else {
-		// if the random number website doesn't work generate one locally
+		// if the random number website doesn't work, then generate one locally
 		choiceType := models.ChoiceType(rand.Intn(6))
 		choice.ID = choiceType
 		choice.Name = choiceType.String()
