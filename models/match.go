@@ -15,7 +15,7 @@ const (
 )
 
 // DetermineWinner decides the winner of a game of RPSLS
-func (m Match) DetermineWinner() {
+func (m *Match) DetermineWinner() {
 	switch m.Player {
 	case Rock:
 		switch m.Computer {
