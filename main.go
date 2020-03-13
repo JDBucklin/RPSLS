@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/jdbucklin/RPSLS/handlers"
 )
 
 func main() {
-	port := ":8080"
+	http.HandleFunc("/choices", handlers.HandleChoices)
+	http.HandleFunc("/choice", handlers.HandleChoice)
+	http.HandleFunc("/play", handlers.HandlePlay)
 
-	http.HandleFunc("/choices", HandleChoices)
-	http.HandleFunc("/choice", HandleChoice)
-
-	err := http.ListenAndServeTLS(port, "certificate.pem", "key.pem", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Printf("error: %s", err)
+		fmt.Printf("error starting server: %s", err)
 	}
 }
